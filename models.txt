@@ -1,0 +1,16 @@
+Spatial
+
+KDE: multiscale copies: likelihood could be weighted by observed variance
+Histogram (equiv to KDE with box kernel)
+Krigging
+Temporal density
+Gaussian + variance
+Uniform
+"By example"
+
+Temporal
+Event density
+
+
+Spatiotemporal
+

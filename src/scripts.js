@@ -1,5 +1,7 @@
 var events = [];
 
+var smap;
+var kmap;
 var hmap;
 var qmap;
 
@@ -11,7 +13,7 @@ function setup(){
   hmap = new Heatmap(1,1,width/2,height/2,21,21);
   qmap = new QuadMap(width/2,1,width/2,height/2,4);
   smap = new SedimentMap(1,height/2,width/2,height/2,20,0.1);
-  kmap = new KDEMap(width/2,height/2,width/2,height/2,25);
+  kmap = new KDEMap(width/2,height/2,width/2,height/2,10);
   drawStep();
 }
 
@@ -235,6 +237,10 @@ function KDEMap(x,y,w,h,sigma){
   this.h = h;
   this.maxD = 0;
   this.sigma = sigma;
+  this.pdf = function(x){
+    var sigma = this.sigma ? this.sigma : 1;
+    return (1/(sigma*sqrt(2*PI)))*exp(-1* sq(x) / (2*sq(sigma)));
+  }
   this.events = [];
   this.push = function(event){
     this.events.push(event);
@@ -248,18 +254,18 @@ function KDEMap(x,y,w,h,sigma){
       }
     }
     if(!this.kernel){
-      this.kernel = new Array(2*this.sigma);
+      this.kernel = new Array(6*this.sigma);
       var dist;
       for(var i = 0;i<this.kernel.length;i++){
-        this.kernel[i] = new Array(2*this.sigma);
+        this.kernel[i] = new Array(6*this.sigma);
         for(var j = 0;j<this.kernel[i].length;j++){
-          dist = abs(j-this.sigma) + abs(i-this.sigma);
-          this.kernel[i][j] = constrain(1 - (dist/(this.sigma)),0,1);
+          dist = sqrt(sq(j-(3*this.sigma)) + sq(i-(3*this.sigma)));
+          this.kernel[i][j] = constrain(this.pdf(dist),0,1);
         }
       }
     }
-    var xc = floor(map(event.x,-1,1,0,w));
-    var yc = floor(map(event.y,-1,1,h,0));
+    var xc = floor(map(event.x,-1,1,0,this.w));
+    var yc = floor(map(event.y,-1,1,this.h,0));
     var xkc,ykc;
     for(var i = 0;i<this.kernel.length;i++){
       for(var j = 0;j<this.kernel[i].length;j++){
@@ -283,7 +289,6 @@ function KDEMap(x,y,w,h,sigma){
         this.push(oldevents[i]);
       }
     }
-    console.log(this.w+","+this.h);
   }
   this.draw = function(){
     noStroke();

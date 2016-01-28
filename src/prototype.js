@@ -46,6 +46,7 @@ var kernelSize = 7;
 var cbRed = ['#fff7ec','#fee8c8','#fdd49e','#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
 var cbPurple = ['#f7fcfd','#e0ecf4','#bfd3e6','#9ebcda','#8c96c6','#8c6bb1','#88419d','#810f7c','#4d004b'];
 var cbGreen = ['#ffffe5','#f7fcb9','#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529'];
+var cbGrey = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#525252','#252525','#000000'];
 
 /***********
  p5 Core Methods
@@ -432,7 +433,9 @@ function getSurprise(event){
   var sumS = 0;
   for(var i = 0;i<models.length;i++){
     //console.log(models[i].name+":"+ models[i].surprise(event));
-    sumS+=models[i].surprise(event);
+    if(!models[i].disabled){
+      sumS+=models[i].surprise(event);
+    }
   }
   
   if(sumS<models.minS){
@@ -489,6 +492,7 @@ function Prior(resolution){
   this.map.minD = 0;
   this.mapImg = createGraphics(width,height);
   this.name = "default prior";
+  this.disabled = false;
   this.update = function(event){
     this.pm*= this.pmd(event);
     this.updateMap();
@@ -510,7 +514,12 @@ function Prior(resolution){
           }
         }
       }
-      updateMap(this.map, cbRed, this.mapImg);
+      if(this.disabled){
+        updateMap(this.map, cbGrey, this.mapImg);
+      }
+      else{
+        updateMap(this.map, cbRed, this.mapImg);
+      }
     }
   };
   
@@ -661,5 +670,13 @@ function toggleMaps(){
     models[i].updateMap();
   }
   drawAll();
+}
+
+function toggleAMap(index){
+  if(index >=0 && index<models.length){
+    models[index].disabled = !models[index].disabled;
+    models[index].updateMap();
+    drawAll();
+  }
 }
 

@@ -6,8 +6,6 @@ var lastFrame;
 var frameTime;
 //current number of ticks
 var curTick;
-//how many frames until we tick
-var tickrate;
 
 //Data
 var datasrc = "./data/test1.json";
@@ -20,7 +18,7 @@ var events;
 //propbability accessors.
 var models;
 var showmaps = true;
-var modelResolution = 25;
+var modelResolution = 50;
 
 //Popcorn
 //"active" events that are still "popping"
@@ -39,8 +37,8 @@ var surpriseDensity;
 //Maps
 var eventMap;
 var eventImg;
-var eventResolution = 100;
-var kernelSize = 7;
+var eventResolution = 250;
+var kernelSize = 12;
 
 //ColorBrewer ramps
 var cbRed = ['#fff7ec','#fee8c8','#fdd49e','#fdbb84','#fc8d59','#ef6548','#d7301f','#b30000','#7f0000'];
@@ -59,7 +57,8 @@ function preload(){
 function setup(){
   pixelDensity(displayDensity());
   createCanvas(windowWidth-20,windowHeight-20);
-  eventImg = createGraphics(width,height);
+  eventImg = createGraphics(2*eventResolution,2*eventResolution);
+  //eventImg.draw = function(){ background(255,0,0);};
   background(255);
   lastFrame = millis();
   frameTime = 1000/30;
@@ -257,27 +256,20 @@ function updateMap(aMap,colorramp,canvas){
   //I'm doing it this way because otherwise high resolution maps take forever to redraw, and we'd have to redraw
   // each time a popcorn event was fired or updated (since we're using alpha blending). Still not great timewise, because we have to draw every cell (since our maxD might've changed.
   colorramp = colorramp ? colorramp : cbRed;
-  var dy = canvas.height/(2*aMap.length);
-  var dx = canvas.width/(2*aMap[0].length);
-  var curx = 0;
-  var cury = 0;
   var fillC;
-  canvas.background(255,0);
+  canvas.loadPixels();
+  canvas.background(255,0,0);
   for(var i = 0; i<aMap.length;i++){
-    curx = 0;
     for(var j = 0;j<aMap[i].length;j++){
-      canvas.noStroke();
       fillC = colorramp[(floor(map(aMap[i][j],aMap.minD,aMap.maxD,0,colorramp.length-1)))];
       if(!fillC){
         fillC = colorramp[0];
       }
-      canvas.fill(fillC);
-      canvas.rect(curx,cury,dx,dy);
-      curx+= dx;
+      canvas.set(j,i,color(fillC));
+      //canvas.set(i,j,fillC);
     }
-    cury+=dy;
   }
-  canvas.pop();
+  canvas.updatePixels();
 }
 
 function drawHistogram(x,y,w,h,histogram,colorramp){
@@ -404,7 +396,7 @@ function drawPopcorn(x,y,w,h,colorramp){
       ellipse((xc*dx) + (dx/2),(yc*dy) + (dy/2),pr,pr);
       fill(pc);
       //centroid
-      ellipse((xc*dx) + (dx/2),(yc*dy) + (dy/2),max(dx,dy)/2.0,max(dx,dy)/2.0);
+      ellipse((xc*dx) + (dx/2),(yc*dy) + (dy/2),max(max(dx,dy)/2.0,5),max(max(dx,dy)/2.0,5));
     }
   }
   pop();
@@ -426,16 +418,40 @@ function getDensity(event){
   }
 }
 
+function sum(anArray){
+  var curSum = 0;
+  for(var i = 0;i<anArray.length;i++){
+    curSum+=anArray[i];
+  }
+  return curSum
+}
+
 function getSurprise(event){
   // How surprising is this event?
   // Must return a normalized value in [0,1],
   // even though the measures are in bits.
   var sumS = 0;
+  var sumP = 0;
+  var mS = 0;
   for(var i = 0;i<models.length;i++){
     //console.log(models[i].name+":"+ models[i].surprise(event));
     if(!models[i].disabled){
-      sumS+=models[i].surprise(event);
+      
+      //mS = models[i].pmd(event) * (log ( models[i].pmd(event) / models[i].pm)/log(2));
+      mS = models[i].pm * models[i].surprise(event);
+      //mS = models[i].surprise(event);
+      if(!mS){
+        mS = 0;
+      }
+      sumS+= mS;
+      //console.log("S("+models[i].name + ")= " + mS );
+      sumP+= models[i].pm;
     }
+  }
+  
+  for(var i = 0;i<models.length;i++){
+    models[i].pm/=sumP;
+    //console.log("P("+models[i].name + ")=" + models[i].pm);
   }
   
   if(sumS<models.minS){
@@ -446,6 +462,7 @@ function getSurprise(event){
     models.maxS = sumS;
     surpriseDensity.maxD = sumS;
   }
+  
   //console.log("sum:" + sumS);
   return sumS;
 }
@@ -490,7 +507,7 @@ function Prior(resolution){
   this.resolution = resolution ? resolution : 20;
   this.map = initializeMap(this.resolution,0);
   this.map.minD = 0;
-  this.mapImg = createGraphics(width,height);
+  this.mapImg = createGraphics(2*resolution,2*resolution);
   this.name = "default prior";
   this.disabled = false;
   this.update = function(event){
@@ -524,7 +541,12 @@ function Prior(resolution){
   };
   
   this.draw = function(x,y,w,h){
-      drawMap(x,y,w,h,this.mapImg);
+    var borderC = cbRed[floor(map(this.pm,0,1,0,cbRed.length-1))];
+    drawMap(x,y,w,h,this.mapImg);
+    fill(0,0);
+    strokeWeight(1);
+    stroke(borderC);
+    rect(x,y,w-1,h-1);
   }
 }
 
@@ -538,7 +560,7 @@ function StaticGaussian(mu,sigma,resolution,initialP){
   this.sigma.x = sigma.x ? sigma.x : sigma;
   this.sigma.y = sigma.y ? sigma.y : sigma;
   //Probability of this model
-  this.pm = initialP ? initialP : 1;
+  this.pm = initialP ? initialP : (1/models.length);
   this.name = "staticGaussian("+this.mu.x+","+this.sigma.x+")";
  
   this.pmd = function(event){
@@ -550,12 +572,12 @@ function StaticGaussian(mu,sigma,resolution,initialP){
     var dist = sqrt ( sq( (event.x-this.mu.x) / this.sigma.x) + sq( (event.y-this.mu.y) / this.sigma.y));
     var expected = gaussPDF(dist)/gaussPDF(0);
     var actual = getDensity(event);
-    return abs(actual-expected);
+    return 1- abs(actual-expected);
   };
   this.surprise = function(event){
     //kl( p(m | d),p(m)) = p(m | d ) * log ( p(m | d) / p(m) )
     //return this.pmd(event) * (log ( this.pmd(event) / this.pm)/log(2));
-    return (this.pdm(event));
+    return 1- this.pdm(event);
     //return this.pdm(event);
   };
   this.updateMap();
@@ -573,7 +595,9 @@ function Gaussian(resolution,initialP){
   
   
   this.update = function(event){
-    this.pm*=this.pmd(event);
+    
+    //average this step to downweight single datapoints
+    this.pm= (this.pm + (this.pmd(event)))/ 2;
     this.mu = eventMap.mu;
     this.sigma = eventMap.sigma;
     this.updateMap();
@@ -587,13 +611,13 @@ function Gaussian(resolution,initialP){
     var dist = sqrt ( sq( (event.x-this.mu.x) / this.sigma.x) + sq( (event.y-this.mu.y) / this.sigma.y));
     var expected = gaussPDF(dist)/gaussPDF(0);
     var actual = getDensity(event);
-    return abs(actual-expected);
+    return 1 - abs(actual-expected);
   };
   this.surprise = function(event){
     //kl( p(m | d),p(m)) = p(m | d ) * log ( p(m | d) / p(m) )
     //return this.pmd(event) * (log ( this.pmd(event) / this.pm)/log(2));
-    return (this.pdm(event));
-    //return this.pdm(event);
+    //return (this.pdm(event));
+    return 1-this.pdm(event);
   };
   this.updateMap();
   
@@ -606,7 +630,7 @@ function Uniform(resolution,initialP){
   this.pm = initialP ? initialP : 1;
   this.name = "Uniform";
   this.update = function(event){
-    this.pm*=this.pmd(event);
+    this.pm= (this.pm + (this.pmd(event)))/ 2;
     this.updateMap();
   };
   this.pmd = function(event){
@@ -618,16 +642,16 @@ function Uniform(resolution,initialP){
     if(eventMap && eventMap.n>1){
       var expected = gaussPDF(0) / (eventMap.length*eventMap[0].length);
       var actual = getDensity(event);
-      return abs(actual-expected);
+      return 1 - abs(actual-expected);
     }
     else{
-      return 0;
+      return 1;
     }
   };
   this.surprise = function(event){
     //kl( p(m | d),p(m)) = p(m | d ) * log ( p(m | d) / p(m) )
     //return this.pmd(event) * (log ( this.pmd(event) / this.pm)/log(2));
-    return this.pdm(event);
+    return 1- this.pdm(event);
   };
   this.updateMap();
   

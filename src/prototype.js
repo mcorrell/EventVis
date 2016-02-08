@@ -71,9 +71,9 @@ function setup(){
   
   curTick = 0;
   models = [];
-  models[0] = new StaticGaussian(0.5,0.25,modelResolution);
-  models[1] = new Gaussian(modelResolution);
-  models[2] = new Uniform(modelResolution);
+  models.push(new StaticGaussian(0.5,0.25,modelResolution));
+  models.push(new Gaussian(modelResolution));
+  models.push(new Uniform(modelResolution));
   models.minS = 0;
   models.maxS = 0;
   events = [];

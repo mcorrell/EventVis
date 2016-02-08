@@ -1,11 +1,11 @@
 {
-"name": "Test",
-"events" : [
-[ {"x" : 0, "y" : 0},{"x" : 0.5,"y": 0.5}],
-[{}],
-
-
-
-]
-
+"name": "Fire",
+"src" : "fires.csv",
+"overlay : "firemap.png",
+"minT" : 5863,
+"maxT" : 14866,
+"minX" : 63.72,
+"maxX" : 66.47,
+"minY" : 19.31,
+"maxY" : 21.19
 }

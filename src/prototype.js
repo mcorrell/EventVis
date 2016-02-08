@@ -10,6 +10,11 @@ var curTick;
 //Data
 var datasrc = "./data/test1.json";
 var data;
+var minX = 0;
+var maxX = 1;
+var minY = 0;
+var maxY = 1;
+var minT = 0;
 
 //a 2d array of event objects. each row is a tick. events need an x and y.
 var events;
@@ -52,6 +57,7 @@ var cbGrey = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#5252
 
 function preload(){
   // data = loadJSON(datasrc);
+  
 }
 
 function setup(){
@@ -65,9 +71,9 @@ function setup(){
   
   curTick = 0;
   models = [];
-  // models[0] = new StaticGaussian(0.5,0.25,modelResolution);
-  models[0] = new Gaussian(modelResolution);
-  models[1] = new Uniform(modelResolution);
+  models[0] = new StaticGaussian(0.5,0.25,modelResolution);
+  models[1] = new Gaussian(modelResolution);
+  models[2] = new Uniform(modelResolution);
   models.minS = 0;
   models.maxS = 0;
   events = [];
@@ -147,8 +153,8 @@ function tick(){
 function sediment(event){
   // Update our main heatmap display of event density. Currently uses kde.
   // Also updates summary statistics using recurrence relationships from Knuth.
-  var yc = floor(map(event.y,0,1,eventMap.length-1,0));
-  var xc = floor(map(event.x,0,1,0,eventMap[yc].length-1));
+  var yc = floor(map(event.y,minY,maxY,eventMap.length-1,0));
+  var xc = floor(map(event.x,minX,maxX,0,eventMap[yc].length-1));
   var ykc,xkc,mk1x,mk1y;
   
   
@@ -375,8 +381,8 @@ function drawPopcorn(x,y,w,h,colorramp){
     if(!sval){
       sval = 0;
     }
-    yc = floor(map(popcorn[i].y,0,1,eventMap.length-1,0));
-    xc = floor(map(popcorn[i].x,0,1,0,eventMap[yc].length-1));
+    yc = floor(map(popcorn[i].y,minY,maxY,eventMap.length-1,0));
+    xc = floor(map(popcorn[i].x,minX,maxY,0,eventMap[yc].length-1));
     pr = map(popcorn[i].age,1,popcorn[i].life,minR,constrain(sval*maxR,minR,maxR));
     pa = map(popcorn[i].age,1,popcorn[i].life,0,1);
     pc = colorramp[floor(map(sval,0,1,0,colorramp.length-1))];
@@ -408,8 +414,8 @@ function getDensity(event){
       return 1;
     }
     else{
-      var yc = floor(map(event.y,0,1,0,eventMap.length-1));
-      var xc = floor(map(event.x,0,1,0,eventMap[yc].length-1));
+      var yc = floor(map(event.y,minY,maxY,0,eventMap.length-1));
+      var xc = floor(map(event.x,minX,maxX,0,eventMap[yc].length-1));
       return eventMap[yc][xc]/eventMap.maxD;
     }
   }
@@ -503,15 +509,16 @@ function gaussPDF(x,sigma){
  Model Methods
  ************/
 
-function Prior(resolution){
+function Prior(resolution,initialP){
   this.resolution = resolution ? resolution : 20;
   this.map = initializeMap(this.resolution,0);
   this.map.minD = 0;
   this.mapImg = createGraphics(2*resolution,2*resolution);
   this.name = "default prior";
   this.disabled = false;
+  this.pm = initialP ? initialP : 1;
   this.update = function(event){
-    this.pm*= this.pmd(event);
+    this.pm= (this.pm + (this.pmd(event)))/ 2;
     this.updateMap();
   };
   this.surprise = function(event){
@@ -541,7 +548,7 @@ function Prior(resolution){
   };
   
   this.draw = function(x,y,w,h){
-    var borderC = cbRed[floor(map(this.pm,0,1,0,cbRed.length-1))];
+    var borderC = this.pm<=1 && this.pm>=0 ? cbRed[floor(map(this.pm,0,1,0,cbRed.length-1))] : cbRed[0];
     drawMap(x,y,w,h,this.mapImg);
     fill(0,0);
     strokeWeight(1);
@@ -559,10 +566,7 @@ function StaticGaussian(mu,sigma,resolution,initialP){
   this.sigma = {};
   this.sigma.x = sigma.x ? sigma.x : sigma;
   this.sigma.y = sigma.y ? sigma.y : sigma;
-  //Probability of this model
-  this.pm = initialP ? initialP : (1/models.length);
   this.name = "staticGaussian("+this.mu.x+","+this.sigma.x+")";
- 
   this.pmd = function(event){
     //Probability of the model, given the data.
     return this.pm * (this.pdm(event));
@@ -585,14 +589,11 @@ function StaticGaussian(mu,sigma,resolution,initialP){
 }
 
 function Gaussian(resolution,initialP){
-  //A static gaussian prior.
+  //A dynamic gaussian prior.
   Prior.apply(this,[resolution]);
   this.mu = {x: 0,y:0};
   this.sigma = {x: 1, y: 1};
-  //Probability of this model
-  this.pm = initialP ? initialP : 1;
   this.name = "Gaussian("+this.mu.x+","+this.sigma.x+")";
-  
   
   this.update = function(event){
     
@@ -624,10 +625,8 @@ function Gaussian(resolution,initialP){
 }
 
 function Uniform(resolution,initialP){
-  //A static gaussian prior.
+  //A uniform prior.
   Prior.apply(this,[resolution]);
-  //Probability of this model
-  this.pm = initialP ? initialP : 1;
   this.name = "Uniform";
   this.update = function(event){
     this.pm= (this.pm + (this.pmd(event)))/ 2;

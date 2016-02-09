@@ -198,7 +198,7 @@ function sediment(event){
   var yc = floor(map(event.y,minY,maxY,eventMap.length-1,0));
   var xc = floor(map(event.x,minX,maxX,0,eventMap[yc].length-1));
   var ykc,xkc,mk1x,mk1y;
-  
+  console.log(event);
   
   if(!eventMap.n || eventMap.n==0){
     eventMap.n = 1;
@@ -231,6 +231,7 @@ function sediment(event){
     }
   }
   
+  console.log(eventMap);
   for(var i = 0;i<models.length;i++){
     models[i].update(event);
   }

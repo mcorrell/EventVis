@@ -22,7 +22,7 @@ var events;
 //array of spatial models. each has an initial state (corresponding to priors), a per-event update method, and
 //propbability accessors.
 var models;
-var showmaps = false;
+var showmaps = true;
 var modelResolution = 50;
 
 //Popcorn
@@ -114,7 +114,7 @@ function setup(){
   
   curTick = 0;
   models = [];
-  models.push(new StaticGaussian(0.5,0.25,modelResolution));
+  //models.push(new StaticGaussian(0.5,0.25,modelResolution));
   models.push(new Gaussian(modelResolution));
   models.push(new Uniform(modelResolution));
   models.minS = 0;
@@ -582,7 +582,9 @@ function Prior(resolution,initialP){
       var xc,yc;
       for(var i = 0;i<this.map.length;i++){
         for(var j = 0;j<this.map[i].length;j++){
-          this.map[i][j] = this.surprise({x: (j+0.5)/this.map[i].length, y:(i+0.5)/this.map.length});
+          xc = map((j+0.5)/this.map[i].length,0,1,minX,maxX);
+          yc = map((i+0.5)/this.map.length,0,1,minY,maxY);
+          this.map[i][j] = this.surprise({x: xc, y: yc});
           if(this.map[i][j]>this.map.maxD){
             this.map.maxD = this.map[i][j];
           }

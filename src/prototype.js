@@ -79,7 +79,7 @@ function loadData(theJSON){
     maxY = data.maxY;
   }
   if(data.src){
-    loadTable("./data"+data.src,loadCSV,"csv","header");
+    loadTable("./data/"+data.src,loadCSV,"csv","header");
   }
 }
 

@@ -8,7 +8,7 @@ var frameTime;
 var curTick;
 
 //Data
-var datasrc = "/data/test1.json";
+var datasrc = "./data/test1.json";
 var data;
 var minX = 0;
 var maxX = 1;

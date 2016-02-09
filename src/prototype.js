@@ -66,9 +66,38 @@ function loadData(theJSON){
   if(data.overlay){
     overlay = loadImage("./data/"+data.overlay);
   }
+  if(data.minX){
+    minX = data.minX;
+  }
+  if(data.maxX){
+    maxX = data.maxX;
+  }
+  if(data.minY){
+    minY = data.minY;
+  }
+  if(data.maxY){
+    maxY = data.maxY;
+  }
+  if(data.src){
+    loadTable("./data"+data.src,loadCSV,"csv","header");
+  }
 }
 
-function loadCSV(){
+function loadCSV(theCSV){
+  var T,X,Y;
+  var minT = data.minT ? data.minT : 0;
+  var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
+  events = Array(maxT-minT);
+  for(var i = 0;i<events.length;i++){
+    events[i] = [];
+  }
+  
+  for(var i=0;i<theCSV.getRowCount();i++){
+    T = theCSV.getString(i,"Time");
+    X = theCSV.getString(i,"X");
+    Y = theCSV.getString(i,"Y");
+    events[T].push({x: X, y: Y});
+  }
   
 }
 
@@ -88,7 +117,6 @@ function setup(){
   models.push(new Uniform(modelResolution));
   models.minS = 0;
   models.maxS = 0;
-  events = [];
   popcorn = [];
   eventDensity = [];
   eventDensity.minD = 0;
@@ -100,7 +128,7 @@ function setup(){
   eventMap = initializeMap(eventResolution,0);
   eventMap.kernel = initializeKernel(kernelSize);
   
-  if(!data){
+  if(!events){
     makeTestData();
   }
   

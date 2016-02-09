@@ -89,7 +89,7 @@ function loadCSV(theCSV){
   // var minT = data.minT ? data.minT : 0;
   // var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
   // events = Array(maxT-minT+1);
-  events = theCSV.getRowCount();
+  events =  Array(theCSV.getRowCount());
   for(var i = 0;i<events.length;i++){
     events[i] = [];
   }

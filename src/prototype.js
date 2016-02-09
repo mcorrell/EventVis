@@ -88,7 +88,7 @@ function loadCSV(theCSV){
   var T,X,Y;
   var minT = data.minT ? data.minT : 0;
   var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
-  events = Array(maxT-minT);
+  events = Array(maxT-minT+1);
   for(var i = 0;i<events.length;i++){
     events[i] = [];
   }
@@ -96,7 +96,10 @@ function loadCSV(theCSV){
     T = theCSV.getString(i,"Time");
     X = theCSV.getString(i,"X");
     Y = theCSV.getString(i,"Y");
-    events[T].push({x: X, y: Y});
+    if(!events[T-minT]){
+      console.log(T);
+    }
+    events[T-minT].push({x: X, y: Y});
   }
   
 }
@@ -261,7 +264,7 @@ function draw(){
   if(millis()-lastFrame>frameTime){
     updatePopcorn();
     lastFrame = millis();
-    //tick();
+    tick();
     drawAll();
   }
 }

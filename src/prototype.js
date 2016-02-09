@@ -58,7 +58,9 @@ var cbGrey = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#5252
 
 function preload(){
   data = loadJSON(datasrc);
-  overlay = loadImage(data.overlay);
+  if(data){
+    overlay = loadImage(data.overlay);
+  }
   
 }
 

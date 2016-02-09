@@ -22,7 +22,7 @@ var events;
 //array of spatial models. each has an initial state (corresponding to priors), a per-event update method, and
 //propbability accessors.
 var models;
-var showmaps = true;
+var showmaps = false;
 var modelResolution = 50;
 
 //Popcorn
@@ -84,7 +84,7 @@ function loadData(theJSON){
 }
 
 function loadCSV(theCSV){
-  console.log(theCSV);
+  //console.log(theCSV);
   var T,X,Y;
   var minT = data.minT ? data.minT : 0;
   var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
@@ -96,9 +96,6 @@ function loadCSV(theCSV){
     T = theCSV.getString(i,"Time");
     X = theCSV.getString(i,"X");
     Y = theCSV.getString(i,"Y");
-    if(!events[T-minT]){
-      console.log(T);
-    }
     events[T-minT].push({x: X, y: Y});
   }
   

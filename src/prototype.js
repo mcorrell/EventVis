@@ -15,7 +15,6 @@ var maxX = 1;
 var minY = 0;
 var maxY = 1;
 var minT = 0;
-var overlay;
 
 //a 2d array of event objects. each row is a tick. events need an x and y.
 var events;
@@ -57,11 +56,16 @@ var cbGrey = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#5252
  ************/
 
 function preload(){
-  data = loadJSON(datasrc);
-  if(data){
+  loadJSON(datasrc,loadData);
+  
+  
+}
+
+function loadData(theJSON){
+  data = theJSON;
+  if(data.overlay){
     overlay = loadImage(data.overlay);
   }
-  
 }
 
 function setup(){

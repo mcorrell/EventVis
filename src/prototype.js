@@ -68,6 +68,10 @@ function loadData(theJSON){
   }
 }
 
+function loadCSV(){
+  
+}
+
 function setup(){
   pixelDensity(displayDensity());
   createCanvas(windowWidth-20,windowHeight-20);
@@ -241,11 +245,17 @@ function drawAll(){
   background(255);
   drawHistogram(0,0,width,height/20,eventDensity,cbGreen);
   drawHistogram(0,(height/20) + 5  ,width,(height/20) - 5,surpriseDensity,cbRed);
-
+  noTint();
   if(showmaps){
     drawMap(0,(height+5)/10,width-1,(3*height/5)-5,eventImg);
+    if(data.overlay){
+      tint(255,128);
+      image(data.overlay,0,(height+5)/10,width-1,(3*height/5)-5);
+      noTint();
+    }
     drawPopcorn(0,(height+5)/10,width-1,(3*height/5)-5,cbRed);
   
+    
     var modelw = width/models.length;
     for(var i = 0;i<models.length;i++){
       models[i].draw(i*modelw,(7*height)/10,modelw,(3*height)/10);
@@ -253,6 +263,11 @@ function drawAll(){
   }
   else{
     drawMap(0,(height+5)/10,width-1,height-((height+5)/10),eventImg);
+    if(data.overlay){
+      tint(255,128);
+      image(data.overlay,0,(height+5)/10,width-1,height-((height+5)/10));
+      noTint();
+    }
     drawPopcorn(0,(height+5)/10,width-1,height-((height+5)/10),cbRed);
   }
 }

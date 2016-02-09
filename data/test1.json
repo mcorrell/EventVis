@@ -1,7 +1,7 @@
 {
 "name": "Fire",
 "src" : "fires.csv",
-"overlay : "firemap.png",
+"overlay" : "firemap.png",
 "minT" : 5863,
 "maxT" : 14866,
 "minX" : 63.72,

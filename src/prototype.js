@@ -56,7 +56,50 @@ var cbGrey = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#5252
  ************/
 
 function preload(){
-  // data = loadJSON(datasrc);
+  loadJSON(datasrc,loadData);
+  
+  
+}
+
+function loadData(theJSON){
+  data = theJSON;
+  if(data.overlay){
+    overlay = loadImage("./data/"+data.overlay);
+  }
+  if(data.minX){
+    minX = data.minX;
+  }
+  if(data.maxX){
+    maxX = data.maxX;
+  }
+  if(data.minY){
+    minY = data.minY;
+  }
+  if(data.maxY){
+    maxY = data.maxY;
+  }
+  if(data.src){
+    loadTable("./data/"+data.src,loadCSV,"csv","header");
+  }
+}
+
+function loadCSV(theCSV){
+  //console.log(theCSV);
+  var T,X,Y;
+  // var minT = data.minT ? data.minT : 0;
+  // var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
+  // events = Array(maxT-minT+1);
+  events =  Array(theCSV.getRowCount());
+  for(var i = 0;i<events.length;i++){
+    events[i] = [];
+  }
+  for(var i=0;i<theCSV.getRowCount();i++){
+    T = parseInt(theCSV.getString(i,"Time"));
+    X = parseFloat(theCSV.getString(i,"X"));
+    Y = parseFloat(theCSV.getString(i,"Y"));
+    //events[T-minT].push({x: X, y: Y});
+    events[i].push({x: X, y: Y});
+  }
   
 }
 
@@ -71,12 +114,11 @@ function setup(){
   
   curTick = 0;
   models = [];
-  models.push(new StaticGaussian(0.5,0.25,modelResolution));
+  //models.push(new StaticGaussian(0.5,0.25,modelResolution));
   models.push(new Gaussian(modelResolution));
   models.push(new Uniform(modelResolution));
   models.minS = 0;
   models.maxS = 0;
-  events = [];
   popcorn = [];
   eventDensity = [];
   eventDensity.minD = 0;
@@ -88,7 +130,7 @@ function setup(){
   eventMap = initializeMap(eventResolution,0);
   eventMap.kernel = initializeKernel(kernelSize);
   
-  if(!data){
+  if(!events){
     makeTestData();
   }
   
@@ -156,7 +198,6 @@ function sediment(event){
   var yc = floor(map(event.y,minY,maxY,eventMap.length-1,0));
   var xc = floor(map(event.x,minX,maxX,0,eventMap[yc].length-1));
   var ykc,xkc,mk1x,mk1y;
-  
   
   if(!eventMap.n || eventMap.n==0){
     eventMap.n = 1;
@@ -233,11 +274,17 @@ function drawAll(){
   background(255);
   drawHistogram(0,0,width,height/20,eventDensity,cbGreen);
   drawHistogram(0,(height/20) + 5  ,width,(height/20) - 5,surpriseDensity,cbRed);
-
+  noTint();
   if(showmaps){
     drawMap(0,(height+5)/10,width-1,(3*height/5)-5,eventImg);
+    if(data.overlay){
+      tint(255,128);
+      image(overlay,0,(height+5)/10,width-1,(3*height/5)-5);
+      noTint();
+    }
     drawPopcorn(0,(height+5)/10,width-1,(3*height/5)-5,cbRed);
   
+    
     var modelw = width/models.length;
     for(var i = 0;i<models.length;i++){
       models[i].draw(i*modelw,(7*height)/10,modelw,(3*height)/10);
@@ -245,6 +292,11 @@ function drawAll(){
   }
   else{
     drawMap(0,(height+5)/10,width-1,height-((height+5)/10),eventImg);
+    if(data.overlay){
+      tint(255,128);
+      image(overlay,0,(height+5)/10,width-1,height-((height+5)/10));
+      noTint();
+    }
     drawPopcorn(0,(height+5)/10,width-1,height-((height+5)/10),cbRed);
   }
 }
@@ -382,7 +434,7 @@ function drawPopcorn(x,y,w,h,colorramp){
       sval = 0;
     }
     yc = floor(map(popcorn[i].y,minY,maxY,eventMap.length-1,0));
-    xc = floor(map(popcorn[i].x,minX,maxY,0,eventMap[yc].length-1));
+    xc = floor(map(popcorn[i].x,minX,maxX,0,eventMap[yc].length-1));
     pr = map(popcorn[i].age,1,popcorn[i].life,minR,constrain(sval*maxR,minR,maxR));
     pa = map(popcorn[i].age,1,popcorn[i].life,0,1);
     pc = colorramp[floor(map(sval,0,1,0,colorramp.length-1))];
@@ -529,7 +581,9 @@ function Prior(resolution,initialP){
       var xc,yc;
       for(var i = 0;i<this.map.length;i++){
         for(var j = 0;j<this.map[i].length;j++){
-          this.map[i][j] = this.surprise({x: (j+0.5)/this.map[i].length, y:(i+0.5)/this.map.length});
+          xc = map((j+0.5)/this.map[i].length,0,1,minX,maxX);
+          yc = map((i+0.5)/this.map.length,0,1,minY,maxY);
+          this.map[i][j] = this.surprise({x: xc, y: yc});
           if(this.map[i][j]>this.map.maxD){
             this.map.maxD = this.map[i][j];
           }

@@ -86,9 +86,10 @@ function loadData(theJSON){
 function loadCSV(theCSV){
   //console.log(theCSV);
   var T,X,Y;
-  var minT = data.minT ? data.minT : 0;
-  var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
-  events = Array(maxT-minT+1);
+  // var minT = data.minT ? data.minT : 0;
+  // var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
+  // events = Array(maxT-minT+1);
+  events = theCSV.getRowCount();
   for(var i = 0;i<events.length;i++){
     events[i] = [];
   }
@@ -96,7 +97,8 @@ function loadCSV(theCSV){
     T = theCSV.getString(i,"Time");
     X = theCSV.getString(i,"X");
     Y = theCSV.getString(i,"Y");
-    events[T-minT].push({x: X, y: Y});
+    //events[T-minT].push({x: X, y: Y});
+    events[i].push({x: X, y: Y});
   }
   
 }
@@ -433,7 +435,7 @@ function drawPopcorn(x,y,w,h,colorramp){
       sval = 0;
     }
     yc = floor(map(popcorn[i].y,minY,maxY,eventMap.length-1,0));
-    xc = floor(map(popcorn[i].x,minX,maxY,0,eventMap[yc].length-1));
+    xc = floor(map(popcorn[i].x,minX,maxX,0,eventMap[yc].length-1));
     pr = map(popcorn[i].age,1,popcorn[i].life,minR,constrain(sval*maxR,minR,maxR));
     pa = map(popcorn[i].age,1,popcorn[i].life,0,1);
     pc = colorramp[floor(map(sval,0,1,0,colorramp.length-1))];

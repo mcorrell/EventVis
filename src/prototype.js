@@ -64,7 +64,7 @@ function preload(){
 function loadData(theJSON){
   data = theJSON;
   if(data.overlay){
-    overlay = loadImage(data.overlay);
+    overlay = loadImage("./data/"+data.overlay);
   }
 }
 

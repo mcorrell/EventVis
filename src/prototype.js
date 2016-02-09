@@ -263,7 +263,7 @@ function draw(){
   if(millis()-lastFrame>frameTime){
     updatePopcorn();
     lastFrame = millis();
-    tick();
+    //tick();
     drawAll();
   }
 }

@@ -8,13 +8,14 @@ var frameTime;
 var curTick;
 
 //Data
-var datasrc = "./data/test1.json";
+var datasrc = "/data/test1.json";
 var data;
 var minX = 0;
 var maxX = 1;
 var minY = 0;
 var maxY = 1;
 var minT = 0;
+var overlay;
 
 //a 2d array of event objects. each row is a tick. events need an x and y.
 var events;
@@ -56,7 +57,8 @@ var cbGrey = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#5252
  ************/
 
 function preload(){
-  // data = loadJSON(datasrc);
+  data = loadJSON(datasrc);
+  overlay = loadImage(data.overlay);
   
 }
 

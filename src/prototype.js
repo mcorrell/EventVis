@@ -208,8 +208,8 @@ function sediment(event){
   else{
     mk1x = eventMap.mu.x;
     mk1y = eventMap.mu.y;
-    eventMap.mu.x = ((eventMap.n*eventMap.mu.x)+event.x)/(eventMap.n+1);
-    eventMap.mu.y = ((eventMap.n*eventMap.mu.y)+event.y)/(eventMap.n+1);
+    eventMap.mu.x = ((eventMap.n*mk1x)+event.x)/(eventMap.n+1);
+    eventMap.mu.y = ((eventMap.n*mk1y)+event.y)/(eventMap.n+1);
     eventMap.sn.x = eventMap.sn.x + ((event.x - mk1x)*(event.x - eventMap.mu.x));
     eventMap.sigma.x = sqrt(eventMap.sn.x / (eventMap.n));
     eventMap.sn.y = eventMap.sn.y + ((event.y - mk1y)*(event.y - eventMap.mu.y));
@@ -466,7 +466,7 @@ function getDensity(event){
       return 1;
     }
     else{
-      var yc = floor(map(event.y,minY,maxY,0,eventMap.length-1));
+      var yc = floor(map(event.y,maxY,minY,0,eventMap.length-1));
       var xc = floor(map(event.x,minX,maxX,0,eventMap[yc].length-1));
       return eventMap[yc][xc]/eventMap.maxD;
     }
@@ -574,7 +574,10 @@ function Prior(resolution,initialP){
     this.updateMap();
   };
   this.surprise = function(event){
-    return 0;
+      //kl( p(m | d),p(m)) = p(m | d ) * log ( p(m | d) / p(m) )
+      //return this.pmd(event) * (log ( this.pmd(event) / this.pm)/log(2));
+      return 1- this.pdm(event);
+      //return this.pdm(event);
   };
   this.updateMap = function(){
     if(showmaps){
@@ -582,7 +585,7 @@ function Prior(resolution,initialP){
       for(var i = 0;i<this.map.length;i++){
         for(var j = 0;j<this.map[i].length;j++){
           xc = map((j+0.5)/this.map[i].length,0,1,minX,maxX);
-          yc = map((i+0.5)/this.map.length,0,1,minY,maxY);
+          yc = map((i+0.5)/this.map.length,0,1,maxY,minY);
           this.map[i][j] = this.surprise({x: xc, y: yc});
           if(this.map[i][j]>this.map.maxD){
             this.map.maxD = this.map[i][j];
@@ -632,12 +635,6 @@ function StaticGaussian(mu,sigma,resolution,initialP){
     var actual = getDensity(event);
     return 1- abs(actual-expected);
   };
-  this.surprise = function(event){
-    //kl( p(m | d),p(m)) = p(m | d ) * log ( p(m | d) / p(m) )
-    //return this.pmd(event) * (log ( this.pmd(event) / this.pm)/log(2));
-    return 1- this.pdm(event);
-    //return this.pdm(event);
-  };
   this.updateMap();
   
 }
@@ -668,12 +665,6 @@ function Gaussian(resolution,initialP){
     var actual = getDensity(event);
     return 1 - abs(actual-expected);
   };
-  this.surprise = function(event){
-    //kl( p(m | d),p(m)) = p(m | d ) * log ( p(m | d) / p(m) )
-    //return this.pmd(event) * (log ( this.pmd(event) / this.pm)/log(2));
-    //return (this.pdm(event));
-    return 1-this.pdm(event);
-  };
   this.updateMap();
   
 }
@@ -700,11 +691,6 @@ function Uniform(resolution,initialP){
     else{
       return 1;
     }
-  };
-  this.surprise = function(event){
-    //kl( p(m | d),p(m)) = p(m | d ) * log ( p(m | d) / p(m) )
-    //return this.pmd(event) * (log ( this.pmd(event) / this.pm)/log(2));
-    return 1- this.pdm(event);
   };
   this.updateMap();
   

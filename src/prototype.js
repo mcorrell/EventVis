@@ -84,6 +84,7 @@ function loadData(theJSON){
 }
 
 function loadCSV(theCSV){
+  console.log(theCSV);
   var T,X,Y;
   var minT = data.minT ? data.minT : 0;
   var maxT = data.maxT ? data.maxT : theCSV.getRowCount();
@@ -91,7 +92,6 @@ function loadCSV(theCSV){
   for(var i = 0;i<events.length;i++){
     events[i] = [];
   }
-  
   for(var i=0;i<theCSV.getRowCount();i++){
     T = theCSV.getString(i,"Time");
     X = theCSV.getString(i,"X");

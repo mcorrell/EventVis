@@ -585,7 +585,7 @@ function Prior(resolution,initialP){
       for(var i = 0;i<this.map.length;i++){
         for(var j = 0;j<this.map[i].length;j++){
           xc = map((j+0.5)/this.map[i].length,0,1,minX,maxX);
-          yc = map((i+0.5)/this.map.length,0,1,minY,maxY);
+          yc = map((i+0.5)/this.map.length,0,1,maxY,minY);
           this.map[i][j] = this.surprise({x: xc, y: yc});
           if(this.map[i][j]>this.map.maxD){
             this.map.maxD = this.map[i][j];

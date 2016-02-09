@@ -250,7 +250,7 @@ function drawAll(){
     drawMap(0,(height+5)/10,width-1,(3*height/5)-5,eventImg);
     if(data.overlay){
       tint(255,128);
-      image(data.overlay,0,(height+5)/10,width-1,(3*height/5)-5);
+      image(overlay,0,(height+5)/10,width-1,(3*height/5)-5);
       noTint();
     }
     drawPopcorn(0,(height+5)/10,width-1,(3*height/5)-5,cbRed);
@@ -265,7 +265,7 @@ function drawAll(){
     drawMap(0,(height+5)/10,width-1,height-((height+5)/10),eventImg);
     if(data.overlay){
       tint(255,128);
-      image(data.overlay,0,(height+5)/10,width-1,height-((height+5)/10));
+      image(overlay,0,(height+5)/10,width-1,height-((height+5)/10));
       noTint();
     }
     drawPopcorn(0,(height+5)/10,width-1,height-((height+5)/10),cbRed);
